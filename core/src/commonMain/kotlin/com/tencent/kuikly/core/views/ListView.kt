@@ -132,6 +132,10 @@ open class ListContentView : ScrollerContentView() {
     private var waitingToNextTickLayout = false
     private var didAddNextTickUpdateVisibleOffset = false
     private var didInitContentOffset = false
+    /**
+     * 当列表items总宽度(横向)或总高度(纵向)小于或等于ListView容器组件宽度(横向)或高度(纵向)时，items是否横向或纵向居中布局。
+     */
+    private var itemsAutoCenter = false
 
     override fun setFrameToRenderView(frame: Frame) {
         super.setFrameToRenderView(frame)
@@ -314,7 +318,43 @@ open class ListContentView : ScrollerContentView() {
             }
             curOffset += max(flexNode.getPadding(StyleSpace.Type.BOTTOM), 0f)
         }
-        val contentHeight = max(curOffset, curAbsoluteNodeOffset)
+        var contentHeight = max(curOffset, curAbsoluteNodeOffset)
+
+        if (itemsAutoCenter) {
+            if (isRowFlexDirection()) {
+                val listWidth = parent?.frame?.width ?: 0f
+                if(listWidth > 0 && contentHeight <= listWidth) {
+                    var diff = (listWidth - curOffset) * 0.5f
+                    contentHeight = listWidth
+                    needLayoutChildren().forEach {
+                        if (it.absoluteFlexNode ) {
+                            //绝对布局的item不自动居中
+                        } else {
+                            val frame = it.flexNode.layoutFrame.toMutableFrame()
+                            frame.x +=  diff
+                            it.flexNode.updateLayoutFrame(frame.toFrame())
+                        }
+                    }
+                }
+            }
+            else {
+                val listHeight = parent?.frame?.height ?: 0f
+                if(listHeight > 0 && contentHeight <= listHeight) {
+                    var diff = (listHeight - curOffset) * 0.5f
+                    contentHeight = listHeight
+                    needLayoutChildren().forEach {
+                        if (it.absoluteFlexNode) {
+                            //绝对布局的item不自动居中
+                        } else {
+                            val frame = it.flexNode.layoutFrame.toMutableFrame()
+                            frame.y += diff
+                            it.flexNode.updateLayoutFrame(frame.toFrame())
+                        }
+                    }
+                }
+            }
+        }
+
         val frame = flexNode.layoutFrame.toMutableFrame()
         if (isRowFlexDirection()) frame.width = contentHeight else frame.height = contentHeight
         flexNode.updateLayoutFrame(frame.toFrame())
@@ -466,6 +506,10 @@ open class ListContentView : ScrollerContentView() {
             needLayoutChildren().forEach { it.flexNode.markDirty() }
             createRenderViewsOnVisibleRect()
         }
+    }
+
+    internal fun setItemsAutoCenter(isAutoCenter: Boolean) {
+        itemsAutoCenter = isAutoCenter
     }
 
     companion object {

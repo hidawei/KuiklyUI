@@ -171,6 +171,7 @@ class TabsView : ListView<TabsAttr, TabsEvent>(), IPagerLayoutEventObserver {
                 creator.invoke(this)
             }
         }
+        (contentView as? ListContentView)?.setItemsAutoCenter(attr.tabItemsAutoCenter)
     }
 
     /// IPagerLayoutEventObserver - begin
@@ -197,6 +198,8 @@ class TabsAttr : ListAttr() {
     internal var initIndex : Int = 0
     internal var indicatorCreator : ViewBuilder? = null
     internal var tabAlignCenter : Boolean = false
+    internal var tabItemsAutoCenter : Boolean = false
+
     /*
      * 更新scroller滚动信息使得tabs组件'指示条'同步滚动
      * 注：该参数必须设置，才能让tabs组件正常使用，该参数来自PageList等Scroller容器组件中监听scroll事件的参数
@@ -228,6 +231,12 @@ class TabsAttr : ListAttr() {
      */
     fun indicatorAlignAspectRatio() {
         tabAlignCenter = false
+    }
+    /**
+     * 当TabsView items(相对布局)总宽度小于或等于ListView容器组件宽度时，items是否自动横向居中布局
+     */
+    fun tabItemsAutoCenter(auto: Boolean) {
+        tabItemsAutoCenter = auto
     }
 }
 
